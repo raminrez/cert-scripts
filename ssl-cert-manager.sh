@@ -2,8 +2,15 @@
 
 # SSL Certificate Manager for Marzneshin
 # Interactive script to manage SSL certificates using acme.sh or certbot
+# Version: 1.0.1
 
 set -e
+
+# Script Information
+SCRIPT_VERSION="1.0.1"
+SCRIPT_NAME="SSL Certificate Manager"
+SCRIPT_AUTHOR="Ramin Rezaei"
+SCRIPT_REPO="https://github.com/raminrez/cert-scripts"
 
 # Configuration
 CONFIG_DIR="$HOME/.ssl-cert-manager"
@@ -82,12 +89,8 @@ check_and_install_dependencies() {
     echo
     print_success "Dependency check completed!"
     
-    # Only prompt for user input if running interactively
-    if [[ -t 0 ]]; then
-        read -p "Press Enter to continue..."
-    else
-        sleep 2
-    fi
+    # Brief pause to let user see the completion message
+    sleep 1
 }
 
 # Helper Functions
@@ -96,6 +99,7 @@ print_header() {
     echo -e "${BLUE}╔══════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║              SSL Certificate Manager             ║${NC}"
     echo -e "${BLUE}║                  for Marzneshin                  ║${NC}"
+    echo -e "${BLUE}║                   v${SCRIPT_VERSION}                       ║${NC}"
     echo -e "${BLUE}╚══════════════════════════════════════════════════╝${NC}"
     echo
 }
@@ -483,7 +487,50 @@ show_main_menu() {
     echo
 }
 
+# Show version information
+show_version() {
+    echo -e "${BLUE}$SCRIPT_NAME${NC}"
+    echo -e "Version: ${GREEN}$SCRIPT_VERSION${NC}"
+    echo -e "Author: $SCRIPT_AUTHOR"
+    echo -e "Repository: $SCRIPT_REPO"
+    echo
+}
+
+# Show help information
+show_help() {
+    show_version
+    echo "Usage: $0 [OPTIONS]"
+    echo
+    echo "Options:"
+    echo "  -v, --version    Show version information"
+    echo "  -h, --help       Show this help message"
+    echo "  (no options)     Run interactive mode"
+    echo
+    echo "This script helps you manage SSL certificates for Marzneshin using"
+    echo "either acme.sh or certbot methods."
+}
+
 main() {
+    # Handle command line arguments
+    case "${1:-}" in
+        -v|--version)
+            show_version
+            exit 0
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        "")
+            # No arguments, continue with interactive mode
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+    
     # Check if running as root
     if [[ $EUID -ne 0 ]]; then
         print_error "This script must be run as root"
