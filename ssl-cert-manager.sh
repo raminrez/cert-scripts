@@ -2,12 +2,12 @@
 
 # SSL Certificate Manager for Marzneshin
 # Interactive script to manage SSL certificates using acme.sh or certbot
-# Version: 1.0.2
+# Version: 1.1.0
 
 set -e
 
 # Script Information
-SCRIPT_VERSION="1.0.2"
+SCRIPT_VERSION="1.1.0"
 SCRIPT_NAME="SSL Certificate Manager"
 SCRIPT_AUTHOR="Ramin Rezaei"
 SCRIPT_REPO="https://github.com/raminrez/cert-scripts"
@@ -466,6 +466,115 @@ install_certbot_certificate() {
     read -p "Press Enter to continue..."
 }
 
+# Version comparison function
+version_compare() {
+    local version1=$1
+    local version2=$2
+    
+    # Split versions into arrays
+    IFS='.' read -ra VER1 <<< "$version1"
+    IFS='.' read -ra VER2 <<< "$version2"
+    
+    # Compare each part
+    for i in {0..2}; do
+        local v1=${VER1[i]:-0}
+        local v2=${VER2[i]:-0}
+        
+        if ((v1 > v2)); then
+            return 1  # version1 > version2
+        elif ((v1 < v2)); then
+            return 2  # version1 < version2
+        fi
+    done
+    
+    return 0  # versions are equal
+}
+
+# Check for script updates
+check_for_updates() {
+    print_header
+    echo -e "${BLUE}🔄 Checking for Updates${NC}"
+    echo "════════════════════════════════════════════════════"
+    
+    print_info "Current version: $SCRIPT_VERSION"
+    print_info "Checking latest version from repository..."
+    
+    # Get latest version from GitHub
+    local latest_version
+    latest_version=$(curl -s "https://raw.githubusercontent.com/raminrez/cert-scripts/main/ssl-cert-manager.sh" | grep "SCRIPT_VERSION=" | head -1 | cut -d'"' -f2)
+    
+    if [[ -z "$latest_version" ]]; then
+        print_error "Failed to check for updates. Please check your internet connection."
+        read -p "Press Enter to continue..."
+        return 1
+    fi
+    
+    print_info "Latest version: $latest_version"
+    
+    # Compare versions
+    version_compare "$SCRIPT_VERSION" "$latest_version"
+    local result=$?
+    
+    if [[ $result -eq 0 ]]; then
+        print_success "You are already running the latest version!"
+        read -p "Press Enter to continue..."
+    elif [[ $result -eq 2 ]]; then
+        echo
+        print_warning "A newer version ($latest_version) is available!"
+        echo
+        read -p "Do you want to update now? (y/N): " update_choice
+        
+        if [[ "$update_choice" =~ ^[Yy]$ ]]; then
+            update_script
+        else
+            print_info "Update cancelled"
+            read -p "Press Enter to continue..."
+        fi
+    else
+        print_info "You are running a newer version than what's available online."
+        read -p "Press Enter to continue..."
+    fi
+}
+
+# Update script function
+update_script() {
+    echo
+    print_info "Downloading latest version..."
+    
+    # Get script path
+    local script_path="$(readlink -f "$0")"
+    local backup_path="${script_path}.backup.$(date +%Y%m%d_%H%M%S)"
+    
+    # Create backup
+    print_info "Creating backup: $backup_path"
+    if ! cp "$script_path" "$backup_path"; then
+        print_error "Failed to create backup"
+        return 1
+    fi
+    
+    # Download new version
+    if curl -sSL "https://raw.githubusercontent.com/raminrez/cert-scripts/main/ssl-cert-manager.sh" -o "$script_path.new"; then
+        # Replace current script
+        if mv "$script_path.new" "$script_path"; then
+            chmod +x "$script_path"
+            print_success "Script updated successfully!"
+            print_info "Backup saved as: $backup_path"
+            echo
+            print_warning "Please restart the script to use the new version."
+            echo
+            read -p "Press Enter to exit and restart manually..."
+            exit 0
+        else
+            print_error "Failed to replace script file"
+            rm -f "$script_path.new"
+            return 1
+        fi
+    else
+        print_error "Failed to download new version"
+        return 1
+    fi
+}
+
 # Main menu
 show_main_menu() {
     print_header
@@ -475,7 +584,8 @@ show_main_menu() {
     echo "2. Install SSL Certificate using certbot"
     echo "3. List existing certificates"
     echo "4. Remove certificate"
-    echo "5. Exit"
+    echo "5. Check for script updates"
+    echo "6. Exit"
     echo
 }
 
@@ -534,7 +644,7 @@ main() {
     
     while true; do
         show_main_menu
-        read -p "Select an option (1-5): " choice
+        read -p "Select an option (1-6): " choice
         
         case $choice in
             1)
@@ -551,11 +661,14 @@ main() {
                 remove_certificate
                 ;;
             5)
+                check_for_updates
+                ;;
+            6)
                 print_info "Goodbye!"
                 exit 0
                 ;;
             *)
-                print_error "Invalid option. Please select 1-5."
+                print_error "Invalid option. Please select 1-6."
                 sleep 2
                 ;;
         esac

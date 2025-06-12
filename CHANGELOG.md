@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2024-12-06
+
+### Added
+- **Auto-Update Feature**: Added option 5 "Check for script updates" to main menu
+- Version comparison logic to detect newer versions
+- Automatic script download and replacement functionality
+- Backup creation before updating (timestamped backups)
+- Update confirmation prompt with user choice
+- Error handling for network issues during update check
+
+### Changed
+- Main menu now has 6 options (was 5)
+- Menu selection prompt updated to "Select an option (1-6)"
+
+### Improved
+- Enhanced version management with semantic version comparison
+- Safe update process with automatic backup creation
+- User-friendly update notifications and prompts
+
+## [1.0.2] - 2024-12-06
+
+### Removed
+- Removed domain validation entirely - let certificate tools (acme.sh/certbot) handle domain validation
+- Only checks if domain input is not empty
+
+### Fixed
+- Fixed domain input issues that were blocking valid domains like `mzpanel.bime.info`
+- Simplified domain handling for better reliability
+
 ## [1.0.1] - 2024-12-06
 
 ### Changed
