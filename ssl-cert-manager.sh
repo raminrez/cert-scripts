@@ -2,12 +2,12 @@
 
 # SSL Certificate Manager for Marzneshin
 # Interactive script to manage SSL certificates using acme.sh or certbot
-# Version: 1.2.0
+# Version: 1.2.1
 
 set -e
 
 # Script Information
-SCRIPT_VERSION="1.2.0"
+SCRIPT_VERSION="1.2.1"
 SCRIPT_NAME="SSL Certificate Manager"
 SCRIPT_AUTHOR="Ramin Rezaei"
 SCRIPT_REPO="https://github.com/raminrez/cert-scripts"
@@ -743,72 +743,24 @@ remove_acme_certificate() {
     read -p "Press Enter to continue..."
 }
 
-# Version comparison function
-version_compare() {
-    local version1=$1
-    local version2=$2
-    
-    # Split versions into arrays
-    IFS='.' read -ra VER1 <<< "$version1"
-    IFS='.' read -ra VER2 <<< "$version2"
-    
-    # Compare each part
-    for i in {0..2}; do
-        local v1=${VER1[i]:-0}
-        local v2=${VER2[i]:-0}
-        
-        if ((v1 > v2)); then
-            return 1  # version1 > version2
-        elif ((v1 < v2)); then
-            return 2  # version1 < version2
-        fi
-    done
-    
-    return 0  # versions are equal
-}
+# Removed version comparison - always update to latest
 
 # Check for script updates
 check_for_updates() {
     print_header
-    echo -e "${BLUE}🔄 Checking for Updates${NC}"
+    echo -e "${BLUE}🔄 Script Update${NC}"
     echo "════════════════════════════════════════════════════"
     
     print_info "Current version: $SCRIPT_VERSION"
-    print_info "Checking latest version from repository..."
+    print_info "This will download and install the latest version from repository."
+    echo
     
-    # Get latest version from GitHub
-    local latest_version
-    latest_version=$(curl -s "https://raw.githubusercontent.com/raminrez/cert-scripts/main/ssl-cert-manager.sh" | grep "SCRIPT_VERSION=" | head -1 | cut -d'"' -f2)
+    read -p "Do you want to update the script now? (y/N): " update_choice
     
-    if [[ -z "$latest_version" ]]; then
-        print_error "Failed to check for updates. Please check your internet connection."
-        read -p "Press Enter to continue..."
-        return 1
-    fi
-    
-    print_info "Latest version: $latest_version"
-    
-    # Compare versions
-    version_compare "$SCRIPT_VERSION" "$latest_version"
-    local result=$?
-    
-    if [[ $result -eq 0 ]]; then
-        print_success "You are already running the latest version!"
-        read -p "Press Enter to continue..."
-    elif [[ $result -eq 2 ]]; then
-        echo
-        print_warning "A newer version ($latest_version) is available!"
-        echo
-        read -p "Do you want to update now? (y/N): " update_choice
-        
-        if [[ "$update_choice" =~ ^[Yy]$ ]]; then
-            update_script
-        else
-            print_info "Update cancelled"
-            read -p "Press Enter to continue..."
-        fi
+    if [[ "$update_choice" =~ ^[Yy]$ ]]; then
+        update_script
     else
-        print_info "You are running a newer version than what's available online."
+        print_info "Update cancelled"
         read -p "Press Enter to continue..."
     fi
 }
@@ -862,7 +814,7 @@ show_main_menu() {
     echo "3. List existing certificates"
     echo "4. Remove certificate"
     echo "5. System certificate cleanup"
-    echo "6. Check for script updates"
+    echo "6. Update script to latest version"
     echo "7. Exit"
     echo
 }

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2024-12-06
+
+### Changed
+- **Simplified Update Process**: Removed version comparison - always updates to latest version
+- Menu option 6 renamed from "Check for script updates" to "Update script to latest version"
+- Update process now directly asks for confirmation without checking current vs latest version
+
+### Removed
+- Version comparison logic (always update approach is simpler and more reliable)
+- Complex version checking that could fail due to network issues
+
+### Improved
+- Faster and more reliable update process
+- Eliminates potential issues with version comparison logic
+- Clearer user experience - just asks if you want to update
+
 ## [1.2.0] - 2024-12-06
 
 ### Added
