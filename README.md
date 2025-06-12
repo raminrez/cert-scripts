@@ -15,14 +15,7 @@ An interactive bash script to easily manage SSL certificates for Marzneshin VPN 
 
 ## Quick Install & Run
 
-### Method 1: Direct Download and Execute
-
-```bash
-# Download and run the script directly
-curl -sSL https://raw.githubusercontent.com/raminrez/cert-scripts/main/ssl-cert-manager.sh | sudo bash
-```
-
-### Method 2: Download, Review, and Execute
+### Method 1: Download, Review, and Execute (Recommended)
 
 ```bash
 # Download the script
@@ -38,12 +31,19 @@ cat ssl-cert-manager.sh
 sudo ./ssl-cert-manager.sh
 ```
 
+### Method 2: One-Line Install and Run
+
+```bash
+# Download and run in one command
+curl -sSL https://raw.githubusercontent.com/raminrez/cert-scripts/main/ssl-cert-manager.sh -o ssl-cert-manager.sh && chmod +x ssl-cert-manager.sh && sudo ./ssl-cert-manager.sh
+```
+
 ### Method 3: Clone Repository
 
 ```bash
 # Clone the repository
 git clone https://github.com/raminrez/cert-scripts.git
-cd YOUR_REPO
+cd cert-scripts
 
 # Make script executable
 chmod +x ssl-cert-manager.sh

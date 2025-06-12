@@ -81,7 +81,13 @@ check_and_install_dependencies() {
     
     echo
     print_success "Dependency check completed!"
-    read -p "Press Enter to continue..."
+    
+    # Only prompt for user input if running interactively
+    if [[ -t 0 ]]; then
+        read -p "Press Enter to continue..."
+    else
+        sleep 2
+    fi
 }
 
 # Helper Functions
