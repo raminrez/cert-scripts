@@ -16,15 +16,17 @@ An interactive bash script to easily manage SSL certificates for Marzneshin VPN 
 ## Quick Install & Run
 
 ### Method 1: Direct Download and Execute
+
 ```bash
 # Download and run the script directly
-curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/ssl-cert-manager.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/raminrez/cert-scripts/main/ssl-cert-manager.sh | sudo bash
 ```
 
 ### Method 2: Download, Review, and Execute
+
 ```bash
 # Download the script
-curl -O https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/ssl-cert-manager.sh
+curl -O https://raw.githubusercontent.com/raminrez/cert-scripts/main/ssl-cert-manager.sh
 
 # Make it executable
 chmod +x ssl-cert-manager.sh
@@ -37,9 +39,10 @@ sudo ./ssl-cert-manager.sh
 ```
 
 ### Method 3: Clone Repository
+
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git clone https://github.com/raminrez/cert-scripts.git
 cd YOUR_REPO
 
 # Make script executable
@@ -57,6 +60,7 @@ sudo ./ssl-cert-manager.sh
 - **Domain** pointing to your server's IP address
 
 **Note:** The script automatically installs all required dependencies including:
+
 - `curl` - For downloading tools and certificates
 - `wget` - For file downloads
 - `socat` - Required for acme.sh standalone mode
@@ -66,18 +70,21 @@ sudo ./ssl-cert-manager.sh
 ## Usage
 
 1. **Run the script as root:**
+
    ```bash
    sudo ./ssl-cert-manager.sh
    ```
 
 2. **First run will automatically:**
+
    - Update system packages
    - Check and install required dependencies
    - Verify port availability (80 and 443)
 
 3. **Choose from the main menu:**
+
    - `1` - Install SSL Certificate using acme.sh
-   - `2` - Install SSL Certificate using certbot  
+   - `2` - Install SSL Certificate using certbot
    - `3` - List existing certificates
    - `4` - Remove certificate
    - `5` - Exit
@@ -90,11 +97,13 @@ sudo ./ssl-cert-manager.sh
 ## Certificate Methods
 
 ### Method 1: acme.sh (Recommended)
+
 - More lightweight and flexible
 - Better for automation and renewals
 - Supports multiple CA providers
 
 **What it does:**
+
 1. Downloads and installs acme.sh
 2. Sets Let's Encrypt as default CA
 3. Registers your email with Let's Encrypt
@@ -102,11 +111,13 @@ sudo ./ssl-cert-manager.sh
 5. Installs certificate to specified location
 
 ### Method 2: certbot
+
 - Official Let's Encrypt client
 - Well-established and widely used
 - Good community support
 
 **What it does:**
+
 1. Installs certbot package (if not already installed)
 2. Issues certificate for your domain
 3. Copies certificates to specified location
@@ -114,6 +125,7 @@ sudo ./ssl-cert-manager.sh
 ## Output Files
 
 After successful certificate creation, you'll get:
+
 - `yourdomain.com.crt` - Certificate file
 - `yourdomain.com.key` - Private key file
 
@@ -122,16 +134,18 @@ After successful certificate creation, you'll get:
 After getting your certificates, update your Marzneshin configuration:
 
 1. **Edit the environment file:**
+
    ```bash
    nano /etc/opt/marzneshin/.env
    ```
 
 2. **Add/update these lines:**
+
    ```env
    # For default path (/var/lib/marzneshin/certs)
    UVICORN_SSL_CERTFILE=/var/lib/marzneshin/certs/yourdomain.com.crt
    UVICORN_SSL_KEYFILE=/var/lib/marzneshin/certs/yourdomain.com.key
-   
+
    # Or for custom path
    UVICORN_SSL_CERTFILE=/your/custom/path/yourdomain.com.crt
    UVICORN_SSL_KEYFILE=/your/custom/path/yourdomain.com.key
@@ -145,7 +159,9 @@ After getting your certificates, update your Marzneshin configuration:
 ## Certificate Management
 
 ### List Certificates
+
 The script maintains a registry of all certificates created, showing:
+
 - Domain name
 - Method used (acme.sh or certbot)
 - Certificate and key file paths
@@ -153,7 +169,9 @@ The script maintains a registry of all certificates created, showing:
 - File existence status
 
 ### Remove Certificates
+
 Safely remove certificates and clean up:
+
 - Deletes certificate and key files
 - Removes entry from registry
 - Confirms before deletion
@@ -170,12 +188,15 @@ Safely remove certificates and clean up:
 ### Common Issues
 
 1. **"This script must be run as root"**
+
    - Solution: Use `sudo ./ssl-cert-manager.sh`
 
 2. **"Invalid domain format"**
+
    - Solution: Ensure domain format is correct (e.g., `example.com`, not `https://example.com`)
 
 3. **Certificate issuance fails**
+
    - Ensure domain points to your server's IP
    - Check if port 80 is available
    - Verify no firewall blocking
@@ -185,11 +206,14 @@ Safely remove certificates and clean up:
    - Run with sudo for system operations
 
 ### Port Requirements
+
 - **Port 80**: Required for domain validation (both methods)
 - **Port 443**: Required for HTTPS after certificate installation
 
 ### Domain Setup
+
 Before running the script, ensure:
+
 1. Your domain's A record points to your server's IP
 2. Port 80 is accessible from the internet
 3. No other web server is using port 80
@@ -204,6 +228,7 @@ Before running the script, ensure:
 ## Certificate Renewal
 
 ### For acme.sh certificates:
+
 ```bash
 # Manual renewal
 ~/.acme.sh/acme.sh --renew -d yourdomain.com
@@ -212,6 +237,7 @@ Before running the script, ensure:
 ```
 
 ### For certbot certificates:
+
 ```bash
 # Manual renewal
 certbot renew
@@ -235,6 +261,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 If you encounter any issues:
+
 1. Check the troubleshooting section above
 2. Ensure all requirements are met
 3. Open an issue on GitHub with details about your problem
