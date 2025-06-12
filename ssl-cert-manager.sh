@@ -2,12 +2,12 @@
 
 # SSL Certificate Manager for Marzneshin
 # Interactive script to manage SSL certificates using acme.sh or certbot
-# Version: 1.1.0
+# Version: 1.2.0
 
 set -e
 
 # Script Information
-SCRIPT_VERSION="1.1.0"
+SCRIPT_VERSION="1.2.0"
 SCRIPT_NAME="SSL Certificate Manager"
 SCRIPT_AUTHOR="Ramin Rezaei"
 SCRIPT_REPO="https://github.com/raminrez/cert-scripts"
@@ -466,6 +466,283 @@ install_certbot_certificate() {
     read -p "Press Enter to continue..."
 }
 
+# System Certificate Management
+list_system_certificates() {
+    print_header
+    echo -e "${BLUE}🗂️ System Certificate Management${NC}"
+    echo "════════════════════════════════════════════════════"
+    
+    local found_certs=false
+    
+    # Check Let's Encrypt/Certbot certificates
+    echo -e "${YELLOW}📁 Certbot/Let's Encrypt Certificates:${NC}"
+    if [[ -d "/etc/letsencrypt/live" ]]; then
+        local certbot_domains=$(find /etc/letsencrypt/live -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sed 's|.*/||' | grep -v "README" | sort)
+        
+        if [[ -n "$certbot_domains" ]]; then
+            local count=1
+            while read -r domain; do
+                if [[ -n "$domain" ]]; then
+                    echo -e "${GREEN}[$count]${NC} $domain"
+                    local cert_path="/etc/letsencrypt/live/$domain"
+                    echo "    Certificate: $cert_path/fullchain.pem"
+                    echo "    Private Key: $cert_path/privkey.pem"
+                    
+                    # Check certificate expiry
+                    if [[ -f "$cert_path/fullchain.pem" ]]; then
+                        local expiry_date=$(openssl x509 -enddate -noout -in "$cert_path/fullchain.pem" 2>/dev/null | cut -d= -f2)
+                        if [[ -n "$expiry_date" ]]; then
+                            echo "    Expires: $expiry_date"
+                        fi
+                    fi
+                    echo
+                    ((count++))
+                    found_certs=true
+                fi
+            done <<< "$certbot_domains"
+        else
+            echo "    No certbot certificates found"
+        fi
+    else
+        echo "    Let's Encrypt directory not found"
+    fi
+    
+    echo
+    echo -e "${YELLOW}📁 ACME.sh Certificates:${NC}"
+    
+    # Check acme.sh certificates
+    local acme_dir="$HOME/.acme.sh"
+    if [[ -d "$acme_dir" ]]; then
+        local acme_domains=$(find "$acme_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | grep -v "^$acme_dir/\." | sed "s|$acme_dir/||" | sort)
+        
+        if [[ -n "$acme_domains" ]]; then
+            local count=1
+            while read -r domain; do
+                if [[ -n "$domain" ]] && [[ -f "$acme_dir/$domain/$domain.cer" ]]; then
+                    echo -e "${GREEN}[$count]${NC} $domain"
+                    echo "    Certificate: $acme_dir/$domain/$domain.cer"
+                    echo "    Private Key: $acme_dir/$domain/$domain.key"
+                    echo "    Full Chain: $acme_dir/$domain/fullchain.cer"
+                    
+                    # Check certificate expiry
+                    if [[ -f "$acme_dir/$domain/$domain.cer" ]]; then
+                        local expiry_date=$(openssl x509 -enddate -noout -in "$acme_dir/$domain/$domain.cer" 2>/dev/null | cut -d= -f2)
+                        if [[ -n "$expiry_date" ]]; then
+                            echo "    Expires: $expiry_date"
+                        fi
+                    fi
+                    echo
+                    ((count++))
+                    found_certs=true
+                fi
+            done <<< "$acme_domains"
+        else
+            echo "    No acme.sh certificates found"
+        fi
+    else
+        echo "    ACME.sh directory not found"
+    fi
+    
+    if [[ "$found_certs" == false ]]; then
+        echo
+        print_warning "No system certificates found"
+    fi
+    
+    echo
+    echo "Options:"
+    echo "1. Remove certbot certificate"
+    echo "2. Remove acme.sh certificate"
+    echo "3. Back to main menu"
+    echo
+    
+    read -p "Select an option (1-3): " cert_choice
+    
+    case $cert_choice in
+        1)
+            remove_certbot_certificate
+            ;;
+        2)
+            remove_acme_certificate
+            ;;
+        3)
+            return
+            ;;
+        *)
+            print_error "Invalid option"
+            read -p "Press Enter to continue..."
+            ;;
+    esac
+}
+
+# Remove certbot certificate
+remove_certbot_certificate() {
+    echo
+    echo -e "${YELLOW}🗑️ Remove Certbot Certificate${NC}"
+    echo "════════════════════════════════════════════════════"
+    
+    if [[ ! -d "/etc/letsencrypt/live" ]]; then
+        print_error "No certbot certificates directory found"
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    local certbot_domains=$(find /etc/letsencrypt/live -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sed 's|.*/||' | grep -v "README" | sort)
+    
+    if [[ -z "$certbot_domains" ]]; then
+        print_error "No certbot certificates found"
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    echo "Available certbot certificates:"
+    local count=1
+    while read -r domain; do
+        if [[ -n "$domain" ]]; then
+            echo -e "${GREEN}[$count]${NC} $domain"
+            ((count++))
+        fi
+    done <<< "$certbot_domains"
+    
+    echo
+    read -p "Enter certificate number to remove (or 'q' to quit): " choice
+    
+    if [[ "$choice" == "q" ]]; then
+        return
+    fi
+    
+    if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+        print_error "Invalid selection"
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    local selected_domain=$(echo "$certbot_domains" | sed -n "${choice}p")
+    if [[ -z "$selected_domain" ]]; then
+        print_error "Invalid certificate number"
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    echo
+    echo -e "Selected domain: ${YELLOW}$selected_domain${NC}"
+    echo "This will remove:"
+    echo "- /etc/letsencrypt/live/$selected_domain/"
+    echo "- /etc/letsencrypt/archive/$selected_domain/"
+    echo "- /etc/letsencrypt/renewal/$selected_domain.conf"
+    echo
+    
+    read -p "Are you sure you want to remove this certificate? (y/N): " confirm
+    
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        print_info "Removing certbot certificate for $selected_domain..."
+        
+        # Use certbot delete command if available
+        if command -v certbot >/dev/null 2>&1; then
+            if certbot delete --cert-name "$selected_domain" --non-interactive 2>/dev/null; then
+                print_success "Certificate removed successfully using certbot"
+            else
+                # Manual removal if certbot delete fails
+                rm -rf "/etc/letsencrypt/live/$selected_domain" 2>/dev/null
+                rm -rf "/etc/letsencrypt/archive/$selected_domain" 2>/dev/null
+                rm -f "/etc/letsencrypt/renewal/$selected_domain.conf" 2>/dev/null
+                print_success "Certificate files removed manually"
+            fi
+        else
+            # Manual removal if certbot not available
+            rm -rf "/etc/letsencrypt/live/$selected_domain" 2>/dev/null
+            rm -rf "/etc/letsencrypt/archive/$selected_domain" 2>/dev/null
+            rm -f "/etc/letsencrypt/renewal/$selected_domain.conf" 2>/dev/null
+            print_success "Certificate files removed manually"
+        fi
+    else
+        print_info "Cancelled"
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
+# Remove acme.sh certificate
+remove_acme_certificate() {
+    echo
+    echo -e "${YELLOW}🗑️ Remove ACME.sh Certificate${NC}"
+    echo "════════════════════════════════════════════════════"
+    
+    local acme_dir="$HOME/.acme.sh"
+    if [[ ! -d "$acme_dir" ]]; then
+        print_error "ACME.sh directory not found"
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    local acme_domains=$(find "$acme_dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | grep -v "^$acme_dir/\." | sed "s|$acme_dir/||" | sort)
+    
+    if [[ -z "$acme_domains" ]]; then
+        print_error "No acme.sh certificates found"
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    echo "Available acme.sh certificates:"
+    local count=1
+    while read -r domain; do
+        if [[ -n "$domain" ]] && [[ -f "$acme_dir/$domain/$domain.cer" ]]; then
+            echo -e "${GREEN}[$count]${NC} $domain"
+            ((count++))
+        fi
+    done <<< "$acme_domains"
+    
+    echo
+    read -p "Enter certificate number to remove (or 'q' to quit): " choice
+    
+    if [[ "$choice" == "q" ]]; then
+        return
+    fi
+    
+    if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+        print_error "Invalid selection"
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    local selected_domain=$(echo "$acme_domains" | sed -n "${choice}p")
+    if [[ -z "$selected_domain" ]] || [[ ! -f "$acme_dir/$selected_domain/$selected_domain.cer" ]]; then
+        print_error "Invalid certificate number"
+        read -p "Press Enter to continue..."
+        return
+    fi
+    
+    echo
+    echo -e "Selected domain: ${YELLOW}$selected_domain${NC}"
+    echo "This will remove:"
+    echo "- $acme_dir/$selected_domain/"
+    echo
+    
+    read -p "Are you sure you want to remove this certificate? (y/N): " confirm
+    
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        print_info "Removing acme.sh certificate for $selected_domain..."
+        
+        # Use acme.sh remove command if available
+        if [[ -f "$acme_dir/acme.sh" ]]; then
+            if "$acme_dir/acme.sh" --remove -d "$selected_domain" 2>/dev/null; then
+                print_success "Certificate removed successfully using acme.sh"
+            else
+                # Manual removal if acme.sh remove fails
+                rm -rf "$acme_dir/$selected_domain" 2>/dev/null
+                print_success "Certificate directory removed manually"
+            fi
+        else
+            # Manual removal if acme.sh not available
+            rm -rf "$acme_dir/$selected_domain" 2>/dev/null
+            print_success "Certificate directory removed manually"
+        fi
+    else
+        print_info "Cancelled"
+    fi
+    
+    read -p "Press Enter to continue..."
+}
+
 # Version comparison function
 version_compare() {
     local version1=$1
@@ -584,8 +861,9 @@ show_main_menu() {
     echo "2. Install SSL Certificate using certbot"
     echo "3. List existing certificates"
     echo "4. Remove certificate"
-    echo "5. Check for script updates"
-    echo "6. Exit"
+    echo "5. System certificate cleanup"
+    echo "6. Check for script updates"
+    echo "7. Exit"
     echo
 }
 
@@ -644,7 +922,7 @@ main() {
     
     while true; do
         show_main_menu
-        read -p "Select an option (1-6): " choice
+        read -p "Select an option (1-7): " choice
         
         case $choice in
             1)
@@ -661,14 +939,17 @@ main() {
                 remove_certificate
                 ;;
             5)
-                check_for_updates
+                list_system_certificates
                 ;;
             6)
+                check_for_updates
+                ;;
+            7)
                 print_info "Goodbye!"
                 exit 0
                 ;;
             *)
-                print_error "Invalid option. Please select 1-6."
+                print_error "Invalid option. Please select 1-7."
                 sleep 2
                 ;;
         esac

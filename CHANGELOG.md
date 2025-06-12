@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2024-12-06
+
+### Added
+- **System Certificate Cleanup**: New menu option 5 "System certificate cleanup"
+- List and remove certificates from original system paths:
+  - Certbot certificates from `/etc/letsencrypt/live/`
+  - ACME.sh certificates from `~/.acme.sh/`
+- Certificate expiry date display for system certificates
+- Smart removal using native tools (certbot delete, acme.sh --remove) with fallback to manual removal
+- Comprehensive certificate information display (paths, expiry dates)
+- Safe removal with confirmation prompts
+
+### Changed
+- Main menu now has 7 options (was 6)
+- Menu selection prompt updated to "Select an option (1-7)"
+- Exit option moved to option 7
+
+### Improved
+- Better certificate management workflow for failed certificate creation scenarios
+- Enhanced cleanup capabilities for troubleshooting certificate issues
+- More detailed certificate information display
+
 ## [1.1.0] - 2024-12-06
 
 ### Added
