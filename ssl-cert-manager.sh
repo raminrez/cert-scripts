@@ -151,9 +151,17 @@ get_domain() {
     echo
     read -p "Enter your domain name (e.g., example.com): " domain
     
-    # Basic domain validation
-    if [[ ! "$domain" =~ ^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$ ]]; then
+    # Basic domain validation - supports subdomains and multiple levels
+    # Check if domain contains at least one dot and valid characters
+    if [[ ! "$domain" =~ ^[a-zA-Z0-9.-]+$ ]] || [[ ! "$domain" =~ \. ]] || [[ "$domain" =~ ^\.|\.$|\.\.| ]] ; then
         print_error "Invalid domain format"
+        return 1
+    fi
+    
+    # Check if TLD has at least 2 characters
+    local tld="${domain##*.}"
+    if [[ ${#tld} -lt 2 ]]; then
+        print_error "Invalid domain format - TLD too short"
         return 1
     fi
     

@@ -15,6 +15,8 @@ An interactive bash script to easily manage SSL certificates for Marzneshin VPN 
 
 ## Quick Install & Run
 
+> **⚠️ Important:** This script is interactive and requires user input. Avoid using `curl | bash` as it doesn't support interactive prompts properly.
+
 ### Method 1: Download, Review, and Execute (Recommended)
 
 ```bash
