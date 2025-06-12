@@ -7,7 +7,7 @@
 set -e
 
 # Script Information
-SCRIPT_VERSION="1.0.1"
+SCRIPT_VERSION="1.0.2"
 SCRIPT_NAME="SSL Certificate Manager"
 SCRIPT_AUTHOR="Ramin Rezaei"
 SCRIPT_REPO="https://github.com/raminrez/cert-scripts"
@@ -150,22 +150,14 @@ get_email() {
     print_success "Email saved: $email"
 }
 
-# Domain validation
+# Domain input (no validation - let certificate tools handle it)
 get_domain() {
     echo
     read -p "Enter your domain name (e.g., example.com): " domain
     
-    # Basic domain validation - supports subdomains and multiple levels
-    # Check if domain contains at least one dot and valid characters
-    if [[ ! "$domain" =~ ^[a-zA-Z0-9.-]+$ ]] || [[ ! "$domain" =~ \. ]] || [[ "$domain" =~ ^\.|\.$|\.\.| ]] ; then
-        print_error "Invalid domain format"
-        return 1
-    fi
-    
-    # Check if TLD has at least 2 characters
-    local tld="${domain##*.}"
-    if [[ ${#tld} -lt 2 ]]; then
-        print_error "Invalid domain format - TLD too short"
+    # Just check if domain is not empty
+    if [[ -z "$domain" ]]; then
+        print_error "Domain cannot be empty"
         return 1
     fi
     
