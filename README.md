@@ -89,12 +89,41 @@ sudo ./ssl-cert-manager.sh
    - `2` - Install SSL Certificate using certbot
    - `3` - List existing certificates
    - `4` - Remove certificate
-   - `5` - Exit
+   - `5` - System certificate cleanup
+   - `6` - Update script to latest version
+   - `7` - Exit
 
 4. **Follow the interactive prompts:**
    - Enter your email (or use the suggested one)
    - Enter your domain name
    - Choose output path (or use default: `/var/lib/marzneshin/certs`)
+
+## Command Line Options
+
+The script supports several command line options for non-interactive usage:
+
+```bash
+# Show version information
+sudo ./ssl-cert-manager.sh --version
+
+# Show help message
+sudo ./ssl-cert-manager.sh --help
+
+# Update script to latest version
+sudo ./ssl-cert-manager.sh --update
+
+# Run in interactive mode (default)
+sudo ./ssl-cert-manager.sh
+```
+
+### Quick Update Command
+
+To quickly update the script without going through menus:
+
+```bash
+# Download and update in one command
+curl -O https://raw.githubusercontent.com/raminrez/cert-scripts/main/ssl-cert-manager.sh && chmod +x ssl-cert-manager.sh && sudo ./ssl-cert-manager.sh --update
+```
 
 ## Certificate Methods
 

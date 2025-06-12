@@ -2,12 +2,12 @@
 
 # SSL Certificate Manager for Marzneshin
 # Interactive script to manage SSL certificates using acme.sh or certbot
-# Version: 1.2.1
+# Version: 1.2.2
 
 set -e
 
 # Script Information
-SCRIPT_VERSION="1.2.1"
+SCRIPT_VERSION="1.2.2"
 SCRIPT_NAME="SSL Certificate Manager"
 SCRIPT_AUTHOR="Ramin Rezaei"
 SCRIPT_REPO="https://github.com/raminrez/cert-scripts"
@@ -836,6 +836,7 @@ show_help() {
     echo "Options:"
     echo "  -v, --version    Show version information"
     echo "  -h, --help       Show this help message"
+    echo "  -u, --update     Update script to latest version"
     echo "  (no options)     Run interactive mode"
     echo
     echo "This script helps you manage SSL certificates for Marzneshin using"
@@ -851,6 +852,21 @@ main() {
             ;;
         -h|--help)
             show_help
+            exit 0
+            ;;
+        -u|--update)
+            # Check if running as root for update
+            if [[ $EUID -ne 0 ]]; then
+                print_error "This script must be run as root for updates"
+                exit 1
+            fi
+            print_header
+            echo -e "${BLUE}🔄 Script Update${NC}"
+            echo "════════════════════════════════════════════════════"
+            print_info "Current version: $SCRIPT_VERSION"
+            print_info "Updating to latest version from repository..."
+            echo
+            update_script
             exit 0
             ;;
         "")

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2024-12-06
+
+### Added
+- **Command Line Update Option**: Added `-u, --update` flag for direct script updates
+- Non-interactive update command: `sudo ./ssl-cert-manager.sh --update`
+- Updated help message to include new --update option
+
+### Improved
+- Can now update script without going through interactive menus
+- Faster update process for automated workflows
+- Better command line interface with direct update capability
+
 ## [1.2.1] - 2024-12-06
 
 ### Changed
