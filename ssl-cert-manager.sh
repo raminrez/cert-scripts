@@ -2,7 +2,7 @@
 
 # SSL Certificate Manager for Marzneshin
 # Interactive script to manage SSL certificates using acme.sh or certbot
-# Version: 1.0.1
+# Version: 1.0.2
 
 set -e
 
